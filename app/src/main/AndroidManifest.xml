@@ -43,48 +43,6 @@
                 android:value="" />
         </activity>
         <activity
-            android:name=".Test3"
-            android:exported="false"
-            android:launchMode="singleInstance">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
-            android:name=".Test2"
-            android:exported="false">
-
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN" /> -->
-
-
-            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-            <!-- </intent-filter> -->
-
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
-            android:name=".Test"
-            android:exported="false">
-
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN" /> -->
-
-
-            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-
-
-            <!-- &lt;!&ndash; <category android:name="android.intent.category.IOT_LAUNCHER"/> &ndash;&gt; -->
-            <!-- &lt;!&ndash; <category android:name="android.intent.category.DEFAULT"/> &ndash;&gt; -->
-            <!-- </intent-filter> -->
-
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
             android:name=".StudentPage"
             android:exported="false"
             android:launchMode="singleInstance"
