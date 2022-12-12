@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="show_sign_week">
+        <item>第15週</item>
+        <item>第16週</item>
+        <item>第17週</item>
+        <item>第18週</item>
+        <item>第19週</item>
+    </string-array>
+    <string-array name="show_sign_week2">
+        <item>禮拜1</item>
+        <item>禮拜2</item>
+        <item>禮拜3</item>
+        <item>禮拜4</item>
+        <item>禮拜5</item>
+    </string-array>
+    <string-array name="classes">
+        <item>(001)軟體工程</item>
+        <item>(025)微積分</item>
+    </string-array>
+</resources>

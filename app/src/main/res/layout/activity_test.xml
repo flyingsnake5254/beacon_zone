@@ -5,14 +5,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".RootPage">
-
+    tools:context=".Test">
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="start"
         android:textSize="20sp"
-        android:text="重設學生簽到紀錄"
         android:layout_margin="10dp"
-        android:id="@+id/b_rest_student"/>
+        android:id="@+id/bStart"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="stop"
+        android:textSize="20sp"
+        android:layout_margin="10dp"
+        android:id="@+id/bStop"/>
 
 </LinearLayout>

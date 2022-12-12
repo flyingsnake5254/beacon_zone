@@ -1,14 +1,26 @@
 package com.example.beacon_zone;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class Welcome extends AppCompatActivity implements Animation.AnimationListener{
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +33,8 @@ public class Welcome extends AppCompatActivity implements Animation.AnimationLis
         animation.setFillAfter(true);
         animation.setAnimationListener(this);
         imageView.setAnimation(animation);
+
+
 
     }
 
@@ -42,4 +56,6 @@ public class Welcome extends AppCompatActivity implements Animation.AnimationLis
     public void onAnimationRepeat(Animation animation) {
 
     }
+
+
 }

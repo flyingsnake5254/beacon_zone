@@ -1,6 +1,5 @@
 package com.example.beacon_zone;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -13,70 +12,25 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
-import android.widget.Button;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+public class Test3 extends AppCompatActivity {
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-
-public class StudentPage extends AppCompatActivity {
-    Button bSignRecord, bAbsentRecord;
-    SimpleDateFormat simpleDateFormat;
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private static final int REQUEST_ENABLE_BT = 1;
     private Handler mHandler;
-    FirebaseDatabase firebaseDatabase;
     private static final long SCAN_PERIOD = 10000; //10 seconds
-
-    String[][] dates = {
-            null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
-            , {null, "2022-12-12", "2022-12-13", "2022-12-14", "2022-12-15", "2022-12-16"}
-            , {null, "2022-12-19", "2022-12-20", "2022-12-21", "2022-12-22", "2022-12-23"}
-            , {null, "2022-12-26", "2022-12-27", "2022-12-28", "2022-12-29", "2022-12-30"}
-            , {null, "2023-01-02", "2023-01-03", "2023-01-04", "2023-01-05", "2023-01-06"}
-            , {null, "2023-01-09", "2023-01-10", "2023-01-11", "2023-01-12", "2023-01-13"}
-    };
-
-    String[] times1 = {null, "08:10:00", "09:10:00", "10:10:00", "11:10:00", null, "13:30:00", "14:30:00", "15:30:00", "16:30:00"};
-    String[] times2 = {null, "09:00:00", "10:00:00", "11:00:00", "12:00:00", null, "14:20:00", "15:20:00", "16:20:00", "17:20:00"};
+    private boolean search = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_student_page);
-
-        setTitle("Student Version");
-
-
+        setContentView(R.layout.activity_test3);
+        setTitle("TEST");
         detect();
-
-        bAbsentRecord = (Button) findViewById(R.id.b_show_absent);
-        bAbsentRecord.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(StudentPage.this, ShowAbsent.class));
-            }
-        });
-
-        bSignRecord = (Button) findViewById(R.id.b_show_sign);
-        bSignRecord.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(StudentPage.this, StudentShowSign.class));
-            }
-        });
 
     }
 
@@ -100,7 +54,7 @@ public class StudentPage extends AppCompatActivity {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    if (ActivityCompat.checkSelfPermission(StudentPage.this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(Test3.this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
                         // TODO: Consider calling
                         //    ActivityCompat#requestPermissions
                         // here to request the missing permissions, and then overriding
@@ -127,7 +81,7 @@ public class StudentPage extends AppCompatActivity {
                 public void onLeScan(final BluetoothDevice device, final int rssi,
                                      final byte[] scanRecord) {
                     // 搜尋回饋
-                    if (ActivityCompat.checkSelfPermission(StudentPage.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(Test3.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                         // TODO: Consider calling
                         //    ActivityCompat#requestPermissions
                         // here to request the missing permissions, and then overriding
@@ -155,7 +109,7 @@ public class StudentPage extends AppCompatActivity {
 
                     // 如果找到了的话
                     if (patternFound) {
-                        if (ActivityCompat.checkSelfPermission(StudentPage.this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                        if (ActivityCompat.checkSelfPermission(Test3.this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
                             // TODO: Consider calling
                             //    ActivityCompat#requestPermissions
                             // here to request the missing permissions, and then overriding
@@ -197,75 +151,12 @@ public class StudentPage extends AppCompatActivity {
                                 + minor + "\nTxPower：" + txPower + "\nrssi：" + rssi;
 
                         String mes2 = "distance："+calculateAccuracy(txPower,rssi);
-//                        TextView t = (TextView) findViewById(R.id.tRSSI);
-//                        t.setText(mes2);
-//                        System.out.println(mes1);
-//                        System.out.println(mes2);
+                        TextView t = (TextView) findViewById(R.id.ttt);
+                        t.setText(mes2);
+                        System.out.println(mes1);
+                        System.out.println(mes2);
 
-                        // check
-                        if (uuid.equals("2036CD68-35A3-4CD6-8124-04DB468787FC") && calculateAccuracy(txPower,rssi) < 0.5){
-                            firebaseDatabase = FirebaseDatabase.getInstance();
-                            DatabaseReference dr = firebaseDatabase.getReference("account").child("student1").child("sign");
-                            dr.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                                @Override
-                                public void onComplete(@NonNull Task<DataSnapshot> task) {
-                                    if (task.isSuccessful()){
-                                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                                        Date d = new Date();
-                                        String s = "";
-                                        s = simpleDateFormat.format(d); // now time
 
-                                        try {
-                                            d = simpleDateFormat.parse(s);
-                                        } catch (ParseException e) {
-                                            e.printStackTrace();
-                                        }
-                                        STOP_SEARCH:
-                                        for (int i = 15 ; i <= 19 ; i ++){
-                                            for (int j = 1 ; j <= 5 ; j ++){
-                                                for (int k = 1 ; k <= 9 ; k ++){
-                                                    if (k == 5)
-                                                        continue ;
-                                                    Date d1 = new Date();
-                                                    Date d2 = new Date();
-                                                    String s1 = dates[i][j] + " " + times1[k];
-                                                    String s2 = dates[i][j] + " " + times2[k];
-
-                                                    try {
-                                                        d1 = simpleDateFormat.parse(s1);
-                                                        d2 = simpleDateFormat.parse(s2);
-                                                    } catch (ParseException e) {
-                                                        e.printStackTrace();
-                                                    }
-//
-                                                    if (d.getTime() >= d1.getTime() && d.getTime() <= d2.getTime()){
-                                                        String state = "";
-                                                        for (DataSnapshot ds : task.getResult().getChildren()){
-                                                            if (ds.getKey().equals(String.valueOf(i))){
-                                                                for (DataSnapshot ds2 : ds.getChildren()){
-                                                                    if (ds2.getKey().equals(String.valueOf(j))){
-                                                                        for (DataSnapshot ds3 : ds2.getChildren()){
-                                                                            if (ds3.getKey().equals(String.valueOf(k)) && ds3.getValue().toString().equals("null")){
-                                                                                Toast.makeText(StudentPage.this, "Success" , Toast.LENGTH_SHORT).show();
-                                                                                FirebaseDatabase f = FirebaseDatabase.getInstance();
-                                                                                DatabaseReference dr2 = f.getReference("account").child("student1").child("sign").child(String.valueOf(i)).child(String.valueOf(j)).child(String.valueOf(k));
-                                                                                dr2.setValue(s);
-//                                                                                dr.child(String.valueOf(i)).child(String.valueOf(j)).child(String.valueOf(k)).setValue(d.toString());
-                                                                                break STOP_SEARCH;
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            });
-                        }
                     }
 
                 }
@@ -352,6 +243,4 @@ public class StudentPage extends AppCompatActivity {
             return accuracy;
         }
     }
-
-
 }
