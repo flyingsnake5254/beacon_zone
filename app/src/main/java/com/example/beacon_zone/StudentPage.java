@@ -40,6 +40,25 @@ public class StudentPage extends AppCompatActivity {
     FirebaseDatabase firebaseDatabase;
     private static final long SCAN_PERIOD = 10000; //10 seconds
 
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS,
+            Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_PRIVILEGED
+    };
+    private static String[] PERMISSIONS_LOCATION = {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS,
+            Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_PRIVILEGED
+    };
+
     String[][] dates = {
             null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
             , {null, "2022-12-12", "2022-12-13", "2022-12-14", "2022-12-15", "2022-12-16"}
@@ -52,13 +71,14 @@ public class StudentPage extends AppCompatActivity {
     String[] times1 = {null, "08:10:00", "09:10:00", "10:10:00", "11:10:00", null, "13:30:00", "14:30:00", "15:30:00", "16:30:00"};
     String[] times2 = {null, "09:00:00", "10:00:00", "11:00:00", "12:00:00", null, "14:20:00", "15:20:00", "16:20:00", "17:20:00"};
 
+    private static final double DISTANCE = 0.1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student_page);
 
         setTitle("Student Version");
-
+        checkPermissions();
 
         detect();
 
@@ -78,6 +98,25 @@ public class StudentPage extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void checkPermissions(){
+        int permission1 = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int permission2 = ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN);
+        if (permission1 != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    this,
+                    PERMISSIONS_STORAGE,
+                    1
+            );
+        } else if (permission2 != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(
+                    this,
+                    PERMISSIONS_LOCATION,
+                    1
+            );
+        }
     }
 
     @Override
@@ -190,26 +229,22 @@ public class StudentPage extends AppCompatActivity {
                         String mac = device.getAddress();
                         // txPower
                         int txPower = (scanRecord[startByte + 24]);
-                        double distance = calculateAccuracy(txPower,rssi);
+//                        double distance = calculateAccuracy(txPower, rssi);
 
-                        String mes1 = "Name：" + device.getName() + "\nMac：" + mac
-                                + " \nUUID：" + uuid + "\nMajor：" + major + "\nMinor："
-                                + minor + "\nTxPower：" + txPower + "\nrssi：" + rssi;
-
-                        String mes2 = "distance："+calculateAccuracy(txPower,rssi);
-//                        TextView t = (TextView) findViewById(R.id.tRSSI);
-//                        t.setText(mes2);
+//                        String mes1 = "Name：" + device.getName() + "\n   Mac：" + mac
+//                                + " \n   UUID：" + uuid + "\n   Major：" + major + "\n   Minor："
+//                                + minor + "\n   TxPower：" + txPower + "\n   rssi：" + rssi + "\n   distance : "+ calculateAccuracy(txPower, rssi);
+//
 //                        System.out.println(mes1);
-//                        System.out.println(mes2);
 
                         // check
-                        if (uuid.equals("2036CD68-35A3-4CD6-8124-04DB468787FC") && calculateAccuracy(txPower,rssi) < 0.5){
+                        if (uuid.equals("2036CD68-35A3-4CD6-8124-04DB468787FC") && calculateAccuracy(txPower, rssi) < DISTANCE) {
                             firebaseDatabase = FirebaseDatabase.getInstance();
                             DatabaseReference dr = firebaseDatabase.getReference("account").child("student1").child("sign");
                             dr.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                                 @Override
                                 public void onComplete(@NonNull Task<DataSnapshot> task) {
-                                    if (task.isSuccessful()){
+                                    if (task.isSuccessful()) {
                                         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                                         Date d = new Date();
                                         String s = "";
@@ -221,11 +256,11 @@ public class StudentPage extends AppCompatActivity {
                                             e.printStackTrace();
                                         }
                                         STOP_SEARCH:
-                                        for (int i = 15 ; i <= 19 ; i ++){
-                                            for (int j = 1 ; j <= 5 ; j ++){
-                                                for (int k = 1 ; k <= 9 ; k ++){
+                                        for (int i = 15; i <= 19; i++) {
+                                            for (int j = 1; j <= 5; j++) {
+                                                for (int k = 1; k <= 9; k++) {
                                                     if (k == 5)
-                                                        continue ;
+                                                        continue;
                                                     Date d1 = new Date();
                                                     Date d2 = new Date();
                                                     String s1 = dates[i][j] + " " + times1[k];
@@ -238,15 +273,15 @@ public class StudentPage extends AppCompatActivity {
                                                         e.printStackTrace();
                                                     }
 //
-                                                    if (d.getTime() >= d1.getTime() && d.getTime() <= d2.getTime()){
+                                                    if (d.getTime() >= d1.getTime() && d.getTime() <= d2.getTime()) {
                                                         String state = "";
-                                                        for (DataSnapshot ds : task.getResult().getChildren()){
-                                                            if (ds.getKey().equals(String.valueOf(i))){
-                                                                for (DataSnapshot ds2 : ds.getChildren()){
-                                                                    if (ds2.getKey().equals(String.valueOf(j))){
-                                                                        for (DataSnapshot ds3 : ds2.getChildren()){
-                                                                            if (ds3.getKey().equals(String.valueOf(k)) && ds3.getValue().toString().equals("null")){
-                                                                                Toast.makeText(StudentPage.this, "Success" , Toast.LENGTH_SHORT).show();
+                                                        for (DataSnapshot ds : task.getResult().getChildren()) {
+                                                            if (ds.getKey().equals(String.valueOf(i))) {
+                                                                for (DataSnapshot ds2 : ds.getChildren()) {
+                                                                    if (ds2.getKey().equals(String.valueOf(j))) {
+                                                                        for (DataSnapshot ds3 : ds2.getChildren()) {
+                                                                            if (ds3.getKey().equals(String.valueOf(k)) && ds3.getValue().toString().equals("null")) {
+//                                                                                Toast.makeText(StudentPage.this, "Success", Toast.LENGTH_SHORT).show();
                                                                                 FirebaseDatabase f = FirebaseDatabase.getInstance();
                                                                                 DatabaseReference dr2 = f.getReference("account").child("student1").child("sign").child(String.valueOf(i)).child(String.valueOf(j)).child(String.valueOf(k));
                                                                                 dr2.setValue(s);
@@ -271,7 +306,7 @@ public class StudentPage extends AppCompatActivity {
                 }
             };
 
-    public void detect(){
+    public void detect() {
         mHandler = new Handler();
 
         bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
@@ -287,9 +322,10 @@ public class StudentPage extends AppCompatActivity {
 
         // 檢查手機是否開啟藍芽裝置
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
-            Toast.makeText(this, "請開啟藍芽裝置", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "請開啟藍芽裝置", Toast.LENGTH_SHORT).show();
             Intent enableBluetooth = new Intent(
                     BluetoothAdapter.ACTION_REQUEST_ENABLE);
+
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
