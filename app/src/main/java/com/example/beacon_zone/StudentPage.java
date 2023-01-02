@@ -59,17 +59,10 @@ public class StudentPage extends AppCompatActivity {
             Manifest.permission.BLUETOOTH_PRIVILEGED
     };
 
-    String[][] dates = {
-            null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
-            , {null, "2022-12-12", "2022-12-13", "2022-12-14", "2022-12-15", "2022-12-16"}
-            , {null, "2022-12-19", "2022-12-20", "2022-12-21", "2022-12-22", "2022-12-23"}
-            , {null, "2022-12-26", "2022-12-27", "2022-12-28", "2022-12-29", "2022-12-30"}
-            , {null, "2023-01-02", "2023-01-03", "2023-01-04", "2023-01-05", "2023-01-06"}
-            , {null, "2023-01-09", "2023-01-10", "2023-01-11", "2023-01-12", "2023-01-13"}
-    };
+    String[][] dates = Variable.dates;
 
-    String[] times1 = {null, "08:10:00", "09:10:00", "10:10:00", "11:10:00", null, "13:30:00", "14:30:00", "15:30:00", "16:30:00"};
-    String[] times2 = {null, "09:00:00", "10:00:00", "11:00:00", "12:00:00", null, "14:20:00", "15:20:00", "16:20:00", "17:20:00"};
+    String[] times1 = Variable.times1;
+    String[] times2 = Variable.times;
 
     private static final double DISTANCE = 0.1;
     @Override
@@ -104,7 +97,7 @@ public class StudentPage extends AppCompatActivity {
         int permission1 = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         int permission2 = ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN);
         if (permission1 != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
+
             ActivityCompat.requestPermissions(
                     this,
                     PERMISSIONS_STORAGE,
@@ -176,39 +169,30 @@ public class StudentPage extends AppCompatActivity {
                         // for ActivityCompat#requestPermissions for more details.
                         return;
                     }
-                    int startByte = 2;
-                    boolean patternFound = false;
-                    // 尋找ibeacon
-                    // 先依序尋找第2到第8陣列的元素
-                    while (startByte <= 5) {
-                        // Identifies an iBeacon
-                        if (((int) scanRecord[startByte + 2] & 0xff) == 0x02 &&
-                                // Identifies correct data length
-                                ((int) scanRecord[startByte + 3] & 0xff) == 0x15) {
 
-                            patternFound = true;
-                            break;
-                        }
-                        startByte++;
+                    // 尋找ibeacon
+                    // https://os.mbed.com/blog/entry/BLE-Beacons-URIBeacon-AltBeacons-iBeacon/
+                    boolean patternFound = false;
+                    String identify = "";
+                    byte[] identifyBytes = new byte[9];
+                    for(int i = 0 ; i < 9 ; i ++){
+                        identifyBytes[i] = scanRecord[i];
+                    }
+                    identify = bytesToHex(identifyBytes);
+                    if(identify.equals("0201061AFF4C000215")){
+                        patternFound = true;
                     }
 
-                    // 如果找到了的话
+
+
+                    // if find ibeacon
                     if (patternFound) {
-                        if (ActivityCompat.checkSelfPermission(StudentPage.this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-                            // TODO: Consider calling
-                            //    ActivityCompat#requestPermissions
-                            // here to request the missing permissions, and then overriding
-                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                            //                                          int[] grantResults)
-                            // to handle the case where the user grants the permission. See the documentation
-                            // for ActivityCompat#requestPermissions for more details.
-                            return;
-                        }
+
 //                        mBluetoothAdapter.stopLeScan(mLeScanCallback);
                         // 轉換16進制
                         byte[] uuidBytes = new byte[16];
                         // 來源、起始位置
-                        System.arraycopy(scanRecord, startByte + 4, uuidBytes, 0, 16);
+                        System.arraycopy(scanRecord, 9, uuidBytes, 0, 16);
                         String hexString = bytesToHex(uuidBytes);
 
                         // UUID
@@ -219,26 +203,28 @@ public class StudentPage extends AppCompatActivity {
                                 + hexString.substring(20, 32);
 
                         // Major
-                        int major = (scanRecord[startByte + 20] & 0xff) * 0x100
-                                + (scanRecord[startByte + 21] & 0xff);
+                        byte[] majorBytes = {scanRecord[25], scanRecord[26]};
+                        int major = Integer.parseInt(bytesToHex(majorBytes));
+
 
                         // Minor
-                        int minor = (scanRecord[startByte + 22] & 0xff) * 0x100
-                                + (scanRecord[startByte + 23] & 0xff);
+                        byte[] minorBytes = {scanRecord[27], scanRecord[28]};
+                        int minor = Integer.parseInt(bytesToHex(minorBytes));
 
                         String mac = device.getAddress();
                         // txPower
-                        int txPower = (scanRecord[startByte + 24]);
-//                        double distance = calculateAccuracy(txPower, rssi);
-
+                        int txPower = (scanRecord[29]);
+//                        double distance = calculateDistance(txPower, rssi);
+//
 //                        String mes1 = "Name：" + device.getName() + "\n   Mac：" + mac
 //                                + " \n   UUID：" + uuid + "\n   Major：" + major + "\n   Minor："
-//                                + minor + "\n   TxPower：" + txPower + "\n   rssi：" + rssi + "\n   distance : "+ calculateAccuracy(txPower, rssi);
+//                                + minor + "\n   TxPower：" + txPower + "\n   rssi：" + rssi + "\n   distance : "+ calculateDistance(txPower, rssi);
 //
 //                        System.out.println(mes1);
 
+
                         // check
-                        if (uuid.equals("2036CD68-35A3-4CD6-8124-04DB468787FC") && calculateAccuracy(txPower, rssi) < DISTANCE) {
+                        if (uuid.equals(Variable.BEACON_UUID) && calculateDistance(txPower, rssi) < DISTANCE) {
                             firebaseDatabase = FirebaseDatabase.getInstance();
                             DatabaseReference dr = firebaseDatabase.getReference("account").child("student1").child("sign");
                             dr.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
@@ -313,18 +299,15 @@ public class StudentPage extends AppCompatActivity {
         mBluetoothAdapter = bluetoothManager.getAdapter();
 
         // 檢查手機硬體是否為BLE裝置
-        if (!getPackageManager().hasSystemFeature
-                (PackageManager.FEATURE_BLUETOOTH_LE)) {
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, "硬體不支援", Toast.LENGTH_SHORT).show();
             finish();
-
         }
 
         // 檢查手機是否開啟藍芽裝置
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
 //            Toast.makeText(this, "請開啟藍芽裝置", Toast.LENGTH_SHORT).show();
-            Intent enableBluetooth = new Intent(
-                    BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            Intent enableBluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
@@ -336,6 +319,7 @@ public class StudentPage extends AppCompatActivity {
                 // for ActivityCompat#requestPermissions for more details.
                 return;
             }
+
             startActivityForResult(enableBluetooth, REQUEST_ENABLE_BT);
 
         } else {
@@ -359,34 +343,29 @@ public class StudentPage extends AppCompatActivity {
 
     public String bytesToHex(byte[] bytes) {
 
-        char[] hexArray = "0123456789ABCDEF".toCharArray();
-
-        char[] hexChars = new char[bytes.length * 2];
+        String result = "";
         for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+            int v = bytes[j] & 0xFF; // to unsigned byte
+
+            String bin = Integer.toBinaryString(v);
+            String zero = "";
+            for(int s = 0 ; s < 8 - bin.length() ; s ++)
+                zero += "0";
+            bin = zero + bin;
+            String s1 = "", s2 = "";
+            for (int s = 0 ; s < 4 ; s ++){
+                s1 += bin.charAt(s);
+                s2 += bin.charAt(4 + s);
+            }
+            result += Integer.toHexString(Integer.parseInt(s1, 2)).toUpperCase();
+            result += Integer.toHexString(Integer.parseInt(s2, 2)).toUpperCase();
+
         }
-        return new String(hexChars);
+        return result;
     }
 
-    public double calculateAccuracy(int txPower, double rssi) {
-        if (rssi == 0)
-        {
-            return -1.0;
-        }
-
-        double ratio = rssi * 1.0 / txPower;
-
-        if (ratio < 1.0)
-        {
-            return Math.pow(ratio, 10);
-        }
-        else
-        {
-            double accuracy = (0.89976) * Math.pow(ratio, 7.7095) + 0.111;
-            return accuracy;
-        }
+    public double calculateDistance(int txPower, double rssi) {
+        return Math.pow(10, ((double) (txPower - rssi) / (10 * 2)));
     }
 
 
