@@ -204,12 +204,13 @@ public class StudentPage extends AppCompatActivity {
 
                         // Major
                         byte[] majorBytes = {scanRecord[25], scanRecord[26]};
-                        int major = Integer.parseInt(bytesToHex(majorBytes));
+                        int major = Integer.parseInt(bytesToHex(majorBytes), 16);
+
 
 
                         // Minor
                         byte[] minorBytes = {scanRecord[27], scanRecord[28]};
-                        int minor = Integer.parseInt(bytesToHex(minorBytes));
+                        int minor = Integer.parseInt(bytesToHex(minorBytes), 16);
 
                         String mac = device.getAddress();
                         // txPower
